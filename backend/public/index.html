@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FocusTask</title>
+</head>
+
+<body>
+
+<h1>🧠 FocusTask</h1>
+
+<div id="logoutZone" style="display:none;margin-bottom:20px;">
+
+    <button onclick="logout()">
+        Déconnexion
+    </button>
+
+</div>
+
+<!-- ================= CONNEXION ================= -->
+
+<div id="auth">
+
+    <h2>Créer un compte</h2>
+
+    <input
+        id="ruser"
+        type="text"
+        placeholder="Nom d'utilisateur">
+
+    <br><br>
+
+    <input
+        id="remail"
+        type="email"
+        placeholder="Adresse e-mail">
+
+    <br><br>
+
+    <input
+        id="rpass"
+        type="password"
+        placeholder="Mot de passe">
+
+    <br><br>
+
+    <button onclick="register()">
+        S'inscrire
+    </button>
+
+    <hr>
+
+    <h2>Se connecter</h2>
+
+    <input
+        id="lemail"
+        type="email"
+        placeholder="Adresse e-mail">
+
+    <br><br>
+
+    <input
+        id="lpass"
+        type="password"
+        placeholder="Mot de passe">
+
+    <br><br>
+
+    <button onclick="login()">
+        Connexion
+    </button>
+
+</div>
+
+<!-- ================= APPLICATION ================= -->
+
+<div id="app" style="display:none;">
+
+    <h2>📁 Créer une catégorie</h2>
+
+    <input
+        id="newCategory"
+        placeholder="Nom de la catégorie">
+
+    <br><br>
+
+    <button onclick="createCategory()">
+        Créer la catégorie
+    </button>
+
+    <div id="categories"></div>
+
+    <hr>
+
+    <h2>📌 Créer une tâche</h2>
+
+    <input
+        id="title"
+        placeholder="Titre">
+
+    <br><br>
+
+    <textarea
+        id="desc"
+        rows="4"
+        cols="45"
+        placeholder="Description de la tâche"></textarea>
+
+    <br><br>
+
+    <label>Deadline</label>
+
+    <br>
+
+    <input
+        id="deadline"
+        type="date">
+
+    <br><br>
+
+    <label>Priorité</label>
+
+    <br>
+
+    <select id="priority">
+
+        <option value="" selected disabled>
+            Choisir une priorité
+        </option>
+
+        <option value="low">
+            Basse
+        </option>
+
+        <option value="medium">
+            Moyenne
+        </option>
+
+        <option value="high">
+            Haute
+        </option>
+
+    </select>
+
+    <br><br>
+
+    <label>Catégorie</label>
+
+    <br>
+
+    <select id="categorySelect">
+
+        <option value="" selected disabled>
+            Choisir une catégorie
+        </option>
+
+    </select>
+
+    <br><br>
+
+    <button onclick="createTask()">
+        Créer la tâche
+    </button>
+
+    <hr>
+
+    <h2>🔎 Filtrer les tâches</h2>
+
+    <select id="filterCategory" onchange="loadTasks()">
+
+        <option value="">
+            Toutes les catégories
+        </option>
+
+    </select>
+
+    <select id="filterStatus" onchange="loadTasks()">
+
+        <option value="">
+            Tous les statuts
+        </option>
+
+        <option value="à faire">
+            À faire
+        </option>
+
+        <option value="en cours">
+            En cours
+        </option>
+
+        <option value="terminé">
+            Terminées
+        </option>
+
+    </select>
+
+    <select id="filterPriority" onchange="loadTasks()">
+
+        <option value="">
+            Toutes les priorités
+        </option>
+
+        <option value="low">
+            Basse
+        </option>
+
+        <option value="medium">
+            Moyenne
+        </option>
+
+        <option value="high">
+            Haute
+        </option>
+
+    </select>
+
+    <hr>
+
+    <h2>📋 Mes tâches</h2>
+
+    <div id="tasks"></div>
+
+    <hr>
+
+    <h2>🎯 Mode Focus</h2>
+
+    <label>
+        Intervalle des notifications (minutes)
+    </label>
+
+    <br>
+
+    <input
+        id="interval"
+        type="number"
+        value="1"
+        min="1">
+
+    <br><br>
+
+    <button onclick="enableNotifications()">
+        Activer les notifications
+    </button>
+
+    <div
+        id="focusBox"
+        style="display:none;border:1px solid #555;border-radius:8px;padding:15px;margin-top:15px;">
+
+        <h3>Tâche en cours</h3>
+
+        <p id="focusTask"></p>
+
+        <h3>Temps de concentration</h3>
+
+        <p id="focusTimer">00:00</p>
+
+        <button onclick="stopFocus()">
+            Arrêter le focus
+        </button>
+
+    </div>
+
+</div>
+
+<script src="app.js"></script>
+
+</body>
+</html>
