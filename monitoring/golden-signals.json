@@ -1,0 +1,25 @@
+{
+  "overwrite": true,
+  "dashboard": {
+    "title": "FocusTask - golden signals",
+    "refresh": "10s",
+    "time": { "from": "now-1h", "to": "now" },
+    "panels": [
+      { "type": "timeseries", "title": "Latence (p95, secondes)",
+        "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+        "targets": [ { "refId": "A", "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{namespace=\"focustask\"}[5m])) by (le))" } ] },
+      { "type": "timeseries", "title": "Trafic (requetes/s)",
+        "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+        "targets": [ { "refId": "A", "expr": "sum(rate(http_request_duration_seconds_count{namespace=\"focustask\"}[1m])) or vector(0)" } ] },
+      { "type": "timeseries", "title": "Erreurs (reponses 5xx/s)",
+        "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+        "targets": [ { "refId": "A", "expr": "sum(rate(http_request_duration_seconds_count{namespace=\"focustask\",status=~\"5..\"}[5m])) or vector(0)" } ] },
+      { "type": "timeseries", "title": "Saturation (CPU par pod)",
+        "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+        "targets": [ { "refId": "A", "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"focustask\",container!=\"\"}[2m])) by (pod)", "legendFormat": "{{pod}}" } ] },
+      { "type": "stat", "title": "Nombre de pods FocusTask (auto-scaling)",
+        "gridPos": { "x": 0, "y": 16, "w": 24, "h": 5 },
+        "targets": [ { "refId": "A", "expr": "kube_horizontalpodautoscaler_status_current_replicas{namespace=\"focustask\"}" } ] }
+    ]
+  }
+}

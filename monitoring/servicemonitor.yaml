@@ -1,0 +1,12 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: focustask
+  namespace: focustask
+spec:
+  selector:
+    matchLabels:
+      app: focustask
+  endpoints:
+    - port: http
+      path: /metrics
