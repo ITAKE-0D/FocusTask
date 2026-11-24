@@ -1,0 +1,24 @@
+name: focustask
+services:
+  mongo:
+    image: mongo:7
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      retries: 5
+    restart: unless-stopped
+  app:
+    image: ${REGISTRY}/focustask:${TAG}
+    environment:
+      MONGO_URI: mongodb://mongo:27017/focustask
+      JWT_SECRET: ${JWT_SECRET}
+    ports:
+      - "8081:3000"
+    depends_on:
+      mongo:
+        condition: service_healthy
+    restart: unless-stopped
+volumes:
+  mongo-data:
