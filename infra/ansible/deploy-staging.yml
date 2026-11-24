@@ -1,0 +1,26 @@
+- name: Deployer le staging (Docker Compose) sur Kali
+  hosts: kali
+  vars_files: [vars.yml]
+  tasks:
+    - name: Dossier de l'appli
+      become: true
+      ansible.builtin.file:
+        path: "{{ app_dir }}"
+        state: directory
+        owner: "{{ ansible_user }}"
+    - name: Copier le fichier Compose
+      ansible.builtin.copy:
+        src: "{{ repo_dir }}/deploy/compose/docker-compose.yml"
+        dest: "{{ app_dir }}/docker-compose.yml"
+    - name: Ecrire le fichier .env
+      ansible.builtin.copy:
+        dest: "{{ app_dir }}/.env"
+        mode: "0600"
+        content: |
+          REGISTRY={{ registry }}
+          TAG={{ version }}
+          JWT_SECRET={{ jwt_secret }}
+    - name: Lancer ou mettre a jour les conteneurs
+      ansible.builtin.command: docker compose up -d --pull always
+      args:
+        chdir: "{{ app_dir }}"
