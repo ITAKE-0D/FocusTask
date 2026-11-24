@@ -1,0 +1,75 @@
+- name: Monitoring et logs sur Kali
+  hosts: kali
+  vars_files: [vars.yml]
+  tasks:
+    - name: Depots Helm
+      kubernetes.core.helm_repository:
+        name: "{{ item.name }}"
+        repo_url: "{{ item.url }}"
+      loop:
+        - { name: prometheus-community, url: "https://prometheus-community.github.io/helm-charts" }
+        - { name: grafana, url: "https://grafana.github.io/helm-charts" }
+    - name: Prometheus + Grafana
+      kubernetes.core.helm:
+        name: monitoring
+        chart_ref: prometheus-community/kube-prometheus-stack
+        release_namespace: monitoring
+        create_namespace: true
+        wait: true
+        wait_timeout: 10m
+        values:
+          grafana:
+            adminPassword: admin
+            service:
+              type: NodePort
+              nodePort: 30300
+            additionalDataSources:
+              - name: Loki
+                type: loki
+                url: http://loki.monitoring:3100
+          prometheus:
+            prometheusSpec:
+              serviceMonitorSelectorNilUsesHelmValues: false
+          kubeControllerManager: { enabled: false }
+          kubeScheduler: { enabled: false }
+          kubeEtcd: { enabled: false }
+          kubeProxy: { enabled: false }
+    - name: Prometheus lit les metriques de FocusTask
+      kubernetes.core.k8s:
+        definition: "{{ lookup('file', repo_dir + '/monitoring/servicemonitor.yaml') | from_yaml }}"
+    - name: Loki (stocke les logs)
+      kubernetes.core.helm:
+        name: loki
+        chart_ref: grafana/loki
+        release_namespace: monitoring
+        values:
+          deploymentMode: SingleBinary
+          loki:
+            auth_enabled: false
+            commonConfig: { replication_factor: 1 }
+            storage: { type: filesystem }
+            schemaConfig:
+              configs:
+                - from: "2024-01-01"
+                  store: tsdb
+                  object_store: filesystem
+                  schema: v13
+                  index: { prefix: index_, period: 24h }
+          singleBinary: { replicas: 1 }
+          read: { replicas: 0 }
+          write: { replicas: 0 }
+          backend: { replicas: 0 }
+          gateway: { enabled: false }
+          chunksCache: { enabled: false }
+          resultsCache: { enabled: false }
+          lokiCanary: { enabled: false }
+          test: { enabled: false }
+    - name: Promtail (envoie les logs de chaque conteneur a Loki)
+      kubernetes.core.helm:
+        name: promtail
+        chart_ref: grafana/promtail
+        release_namespace: monitoring
+        values:
+          config:
+            clients:
+              - url: http://loki.monitoring:3100/loki/api/v1/push
