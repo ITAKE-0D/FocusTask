@@ -1,0 +1,25 @@
+- name: Cluster Kubernetes kind (2 noeuds) sur Kali
+  hosts: kali
+  tasks:
+    - name: Copier la config du cluster
+      ansible.builtin.copy:
+        src: files/kind-config.yaml
+        dest: /tmp/kind-config.yaml
+    - name: Lister les clusters
+      ansible.builtin.command: kind get clusters
+      register: clusters
+      changed_when: false
+    - name: Creer le cluster
+      ansible.builtin.command: kind create cluster --config /tmp/kind-config.yaml
+      when: "'focustask' not in clusters.stdout"
+    - name: Depot Helm metrics-server
+      kubernetes.core.helm_repository:
+        name: metrics-server
+        repo_url: https://kubernetes-sigs.github.io/metrics-server/
+    - name: metrics-server (mesure le CPU pour l'auto-scaling)
+      kubernetes.core.helm:
+        name: metrics-server
+        chart_ref: metrics-server/metrics-server
+        release_namespace: kube-system
+        values:
+          args: ["--kubelet-insecure-tls"]

@@ -1,0 +1,5 @@
+registry: itakd
+version: develop
+jwt_secret: une-longue-phrase-secrete-a-changer
+app_dir: /opt/focustask
+repo_dir: "{{ playbook_dir }}/../.."
