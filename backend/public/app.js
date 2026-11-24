@@ -92,7 +92,7 @@ async function enableNotifications() {
 
     if (permission === "granted") {
 
-        new Notification("FocusTask", {
+        new Notification("FocusTask x TOM", {
             body: "Les notifications sont maintenant activées."
         });
 
@@ -402,7 +402,7 @@ function startFocus(task) {
             String(seconds%60).padStart(2,"0");
 
         if (seconds % interval === 0 && Notification.permission === "granted") {
-            new Notification("FocusTask", {
+            new Notification("FocusTask x TOM", {
                 body: "Es-tu toujours sur : " + currentTask
             });
         }
