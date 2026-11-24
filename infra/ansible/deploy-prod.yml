@@ -1,0 +1,25 @@
+- name: Deployer la production (Kubernetes) sur Kali
+  hosts: kali
+  vars_files: [vars.yml]
+  tasks:
+    - name: Namespace focustask
+      kubernetes.core.k8s:
+        api_version: v1
+        kind: Namespace
+        name: focustask
+    - name: Secret JWT
+      kubernetes.core.k8s:
+        definition:
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: focustask-secret
+            namespace: focustask
+          stringData:
+            jwt: "{{ jwt_secret }}"
+    - name: Appliquer l'application avec la bonne version
+      kubernetes.core.k8s:
+        template: "{{ repo_dir }}/deploy/k8s/focustask.yaml.j2"
+    - name: Attendre la fin de la mise a jour
+      ansible.builtin.command: kubectl -n focustask rollout status deployment/focustask --timeout=180s
+      changed_when: false
