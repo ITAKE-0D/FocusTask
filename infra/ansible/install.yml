@@ -1,0 +1,59 @@
+- name: Installer Docker et Kubernetes sur Kali
+  hosts: kali
+  become: true
+  tasks:
+    - name: Paquets de base
+      ansible.builtin.apt:
+        name: [ca-certificates, curl, python3-apt, python3-kubernetes]
+        update_cache: true
+    - name: Dossier des cles APT
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: "0755"
+    - name: Cle du depot Docker
+      ansible.builtin.get_url:
+        url: https://download.docker.com/linux/debian/gpg
+        dest: /etc/apt/keyrings/docker.asc
+        mode: "0644"
+    - name: Depot Docker (methode officielle Kali)
+      ansible.builtin.apt_repository:
+        repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian bookworm stable"
+        filename: docker
+    - name: Docker et Docker Compose
+      ansible.builtin.apt:
+        name: [docker-ce, docker-ce-cli, containerd.io, docker-compose-plugin]
+        update_cache: true
+    - name: Docker demarre au boot
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: true
+    - name: admin peut utiliser Docker
+      ansible.builtin.user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: true
+    - name: kind
+      ansible.builtin.get_url:
+        url: https://kind.sigs.k8s.io/dl/v0.24.0/kind-linux-amd64
+        dest: /usr/local/bin/kind
+        mode: "0755"
+    - name: kubectl
+      ansible.builtin.get_url:
+        url: https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl
+        dest: /usr/local/bin/kubectl
+        mode: "0755"
+    - name: helm
+      ansible.builtin.shell: curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+      args:
+        creates: /usr/local/bin/helm
+    - name: Limites systeme pour kind
+      ansible.posix.sysctl:
+        name: "{{ item.name }}"
+        value: "{{ item.value }}"
+      loop:
+        - { name: fs.inotify.max_user_instances, value: "512" }
+        - { name: fs.inotify.max_user_watches, value: "524288" }
+    - name: Nouvelle connexion (pour le groupe docker)
+      ansible.builtin.meta: reset_connection
